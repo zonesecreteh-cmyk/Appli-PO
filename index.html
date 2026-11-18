@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PSPO I Quest — Scrum.org Trainer</title>
+  <meta name="theme-color" content="#090d16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PSPO I Quest" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background-color: #090d16; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen pb-20 md:pb-8">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const QUESTIONS = [
+      {
+        id: 1,
+        domain: "Understanding & Applying Scrum",
+        multi: false,
+        q: "Qui est responsable de maximiser la valeur du produit résultant du travail de la Scrum Team ?",
+        options: [
+          "La Scrum Team entière",
+          "Le Product Owner",
+          "Le Scrum Master",
+          "Les Developers"
+        ],
+        correct: [1],
+        explanation: "Le Product Owner est l'unique responsable (accountable) de maximiser la valeur du produit résultant du travail de la Scrum Team (Scrum Guide 2020)."
+      },
+      {
+        id: 2,
+        domain: "Managing Products with Agility",
+        multi: false,
+        q: "Quand un Sprint peut-il être annulé ?",
+        options: [
+          "Lorsque les Developers réalisent que tous les éléments du Sprint Backlog ne seront pas terminés",
+          "Lorsque le Sprint Goal devient obsolète, et seul le Product Owner a l'autorité pour le faire",
+          "Lorsque le Scrum Master constate que la vélocité chute de plus de 30%",
+          "Lorsque les parties prenantes (Stakeholders) changent leurs priorités urgentes"
+        ],
+        correct: [1],
+        explanation: "Un Sprint peut être annulé si le Sprint Goal devient obsolète. Seul le Product Owner a le pouvoir d'annuler le Sprint."
+      },
+      {
+        id: 3,
+        domain: "Understanding & Applying Scrum",
+        multi: false,
+        q: "Quel est l'engagement (Commitment) associé au Product Backlog ?",
+        options: [
+          "La Definition of Done",
+          "Le Sprint Goal",
+          "Le Product Goal",
+          "La Roadmap Trimestrielle"
+        ],
+        correct: [2],
+        explanation: "Chaque artefact contient un engagement : Product Backlog -> Product Goal ; Sprint Backlog -> Sprint Goal ; Increment -> Definition of Done."
+      },
+      {
+        id: 4,
+        domain: "Developing & Delivering Products",
+        multi: false,
+        q: "Qui a le dernier mot sur l'estimation de la taille des éléments du Product Backlog ?",
+        options: [
+          "Le Product Owner, car il connaît le budget",
+          "Le Scrum Master, pour garantir la cohérence des Story Points",
+          "Les Developers qui réaliseront le travail",
+          "Le Tech Lead ou l'Architecte Senior"
+        ],
+        correct: [2],
+        explanation: "Les personnes qui feront le travail (les Developers) sont responsables du dimensionnement (sizing). Le Product Owner peut les aider à comprendre les compromis."
+      },
+      {
+        id: 5,
+        domain: "Evolving the Agile Organization",
+        multi: false,
+        q: "Si 5 Scrum Teams travaillent ensemble sur le même produit, combien de Product Backlog(s) et de Product Owner(s) doit-il y avoir ?",
+        options: [
+          "5 Product Backlogs et 5 Product Owners coordonnés par un Chief PO",
+          "1 seul Product Backlog et 1 seul Product Owner",
+          "1 seul Product Backlog et 5 Product Owners (1 par équipe)",
+          "5 Product Backlogs et 1 seul Product Owner"
+        ],
+        correct: [1],
+        explanation: "Un produit = 1 Product Goal = 1 Product Backlog = 1 Product Owner, peu importe le nombre d'équipes Scrum."
+      },
+      {
+        id: 6,
+        domain: "Managing Products with Agility",
+        multi: true,
+        q: "(Choisissez 2 réponses) Dans le framework Evidence-Based Management (EBM), quels sont les deux Key Value Areas (KVA) orientés vers le marché (Market Value) ?",
+        options: [
+          "Current Value (CV)",
+          "Time-to-Market (T2M)",
+          "Unrealized Value (UV)",
+          "Ability to Innovate (A2I)"
+        ],
+        correct: [0, 2],
+        explanation: "Current Value (CV) et Unrealized Value (UV) mesurent la valeur marché, tandis que Time-to-Market (T2M) et Ability to Innovate (A2I) mesurent la capacité organisationnelle."
+      },
+      {
+        id: 7,
+        domain: "Understanding & Applying Scrum",
+        multi: false,
+        q: "Quel est l'objectif principal de la Sprint Review ?",
+        options: [
+          "Noter la performance individuelle des Developers",
+          "Inspecter le résultat du Sprint et déterminer les adaptations futures avec les Stakeholders",
+          "Valider formellement la recette (UAT) pour autoriser la mise en production",
+          "Faire une démonstration PowerPoint de l'avancement"
+        ],
+        correct: [1],
+        explanation: "La Sprint Review est une séance de travail (pas une simple démo ni un jalon de validation bloquant) pour inspecter l'Increment et adapter le Product Backlog."
+      },
+      {
+        id: 8,
+        domain: "Developing & Delivering Products",
+        multi: false,
+        q: "Quand un Increment doit-il être livré en production (Released) ?",
+        options: [
+          "Obligatoirement à la fin de chaque Sprint après la Sprint Review",
+          "Dès qu'il respecte la Definition of Done et que cela a du sens métier pour le Product Owner",
+          "Uniquement lorsque tous les éléments du Sprint Backlog sont terminés",
+          "À la fin du Sprint de Release"
+        ],
+        correct: [1],
+        explanation: "La Sprint Review n'est jamais une porte (gate) pour mettre en production. On peut livrer plusieurs fois pendant le Sprint dès qu'un Increment est 'Done'."
+      },
+      {
+        id: 9,
+        domain: "Understanding & Applying Scrum",
+        multi: false,
+        q: "Une Scrum Team peut-elle travailler sur plusieurs Product Goals en même temps ?",
+        options: [
+          "Oui, si le Product Owner gère plusieurs sous-produits",
+          "Non, la Scrum Team doit terminer (ou abandonner) un Product Goal avant d'en entamer un autre",
+          "Oui, un Product Goal par Sprint",
+          "Oui, si les Stakeholders l'exigent"
+        ],
+        correct: [1],
+        explanation: "Le Product Goal est l'objectif long terme de la Scrum Team. Elle doit en accomplir (ou abandonner) un avant de passer au suivant."
+      },
+      {
+        id: 10,
+        domain: "Developing & Delivering Products",
+        multi: false,
+        q: "Que se passe-t-il si un élément du Sprint Backlog n'est pas conforme à la Definition of Done à la fin du Sprint ?",
+        options: [
+          "On l'inclut dans l'Increment mais on déduit les Story Points manquants",
+          "Il n'est ni inclus dans l'Increment ni présenté à la Sprint Review ; il retourne dans le Product Backlog",
+          "Le Sprint est prolongé de 2 jours pour le terminer",
+          "Le Product Owner l'accepte sous réserve de corriger les bugs au Sprint suivant"
+        ],
+        correct: [1],
+        explanation: "Tout élément non 'Done' ne fait pas partie de l'Increment, ne doit pas être présenté en Sprint Review, et retourne au Product Backlog pour ré-évaluation."
+      },
+      {
+        id: 11,
+        domain: "Managing Products with Agility",
+        multi: false,
+        q: "Laquelle de ces métriques permet au Product Owner de mesurer directement la valeur délivrée aux clients ?",
+        options: [
+          "L'augmentation de la vélocité de l'équipe de 20%",
+          "Le respect de 100% des estimations initiales en Story Points",
+          "L'évolution de la satisfaction client, de l'usage par fonctionnalité (Feature Usage Index) et du revenu",
+          "Le nombre de lignes de code et de tickets fermés par Sprint"
+        ],
+        correct: [2],
+        explanation: "La vélocité et le nombre de tickets sont des mesures de production (Output), jamais des mesures de valeur (Outcome). Seul l'usage réel et la satisfaction client mesurent la valeur."
+      },
+      {
+        id: 12,
+        domain: "Understanding & Applying Scrum",
+        multi: false,
+        q: "Le Product Owner peut-il déléguer la rédaction et l'ordonnancement des éléments du Product Backlog aux Developers ?",
+        options: [
+          "Non, c'est strictement interdit par le Scrum Guide",
+          "Oui, mais le Product Owner reste toujours l'unique responsable (accountable) final",
+          "Oui, et les Developers deviennent alors responsables (accountable) du Product Backlog",
+          "Uniquement au Scrum Master"
+        ],
+        correct: [1],
+        explanation: "Le PO peut faire le travail lui-même ou le déléguer, mais il demeure toujours responsable (accountable)."
+      },
+      {
+        id: 13,
+        domain: "Evolving the Agile Organization",
+        multi: false,
+        q: "Dans EBM, un produit a une très forte Current Value (clients très satisfaits aujourd'hui) mais une très faible Unrealized Value. Qu'est-ce que cela signifie ?",
+        options: [
+          "Le produit est un échec commercial",
+          "Le produit est une 'vache à lait' mature avec peu de potentiel de croissance supplémentaire sur ce marché",
+          "Il faut investir massivement dans de nouvelles fonctionnalités sur ce produit",
+          "Le Time-to-Market est trop lent"
+        ],
+        correct: [1],
+        explanation: "Forte CV + Faible UV = les clients actuels sont comblés mais il reste très peu de parts de marché ou de besoins non satisfaits à conquérir. Mieux vaut maintenir et investir ailleurs."
+      },
+      {
+        id: 14,
+        domain: "Developing & Delivering Products",
+        multi: false,
+        q: "Quelle est la durée maximale (timebox) de la Sprint Planning pour un Sprint d'un mois ?",
+        options: [
+          "4 heures",
+          "8 heures",
+          "3 heures",
+          "Il n'y a pas de timebox"
+        ],
+        correct: [1],
+        explanation: "Pour un Sprint d'un mois : Sprint Planning = 8h max, Sprint Review = 4h max, Sprint Retrospective = 3h max. Daily Scrum = toujours 15 min."
+      },
+      {
+        id: 15,
+        domain: "Understanding & Applying Scrum",
+        multi: true,
+        q: "(Choisissez 3 réponses) Quels sont les trois sujets (Topics) abordés lors de la Sprint Planning ?",
+        options: [
+          "Topic 1 : Pourquoi ce Sprint a-t-il de la valeur ? (Sprint Goal)",
+          "Topic 2 : Qu'est-ce qui peut être fait (Done) durant ce Sprint ? (Sélection du Product Backlog)",
+          "Topic 3 : Comment le travail choisi sera-t-il réalisé ? (Plan de livraison par les Developers)",
+          "Topic 4 : Qui sera le chef d'équipe pendant ce Sprint ?"
+        ],
+        correct: [0, 1, 2],
+        explanation: "Le Scrum Guide 2020 structure la Sprint Planning autour de 3 Topics : Why (Pourquoi), What (Quoi), et How (Comment)."
+      },
+      {
+        id: 16,
+        domain: "Managing Products with Agility",
+        multi: false,
+        q: "Qu'est-ce que la dette technique (Technical Debt) du point de vue d'un Product Owner ?",
+        options: [
+          "Un sujet purement technique qui ne concerne que les Developers",
+          "Un compromis qui réduit la capacité future à innover (Ability to Innovate) et augmente le coût total de possession (TCO)",
+          "Des bugs mineurs qu'on corrige pendant le Sprint de Hardening",
+          "Le budget informatique dépassé"
+        ],
+        correct: [1],
+        explanation: "La dette technique freine l'Ability to Innovate (A2I), ralentit le Time-to-Market (T2M) et réduit la capacité à délivrer de la valeur."
+      },
+      {
+        id: 17,
+        domain: "Understanding & Applying Scrum",
+        multi: false,
+        q: "Qui est autorisé à modifier le Sprint Backlog pendant le Sprint ?",
+        options: [
+          "Le Product Owner à tout moment",
+          "Les Developers uniquement, au fur et à mesure qu'ils en apprennent davantage",
+          "Les Stakeholders pendant le Daily Scrum",
+          "Le Scrum Master"
+        ],
+        correct: [1],
+        explanation: "Le Sprint Backlog est un plan par et pour les Developers. Eux seuls le mettent à jour pendant le Sprint pour atteindre le Sprint Goal."
+      },
+      {
+        id: 18,
+        domain: "Developing & Delivering Products",
+        multi: false,
+        q: "Comment le Product Backlog Refinement est-il défini dans le Scrum Guide 2020 ?",
+        options: [
+          "Un événement officiel de 4h chaque mercredi",
+          "Une activité continue visant à découper et préciser les éléments en détails plus petits et plus précis",
+          "Une réunion réservée au Product Owner et aux Business Analysts",
+          "Une étape préalable obligatoire pendant le Sprint 0"
+        ],
+        correct: [1],
+        explanation: "Le Refinement n'est pas un événement officiel timeboxé, mais une activité continue tout au long du Sprint."
+      },
+      {
+        id: 19,
+        domain: "Evolving the Agile Organization",
+        multi: false,
+        q: "Un PDG demande au Product Owner d'ajouter immédiatement une fonctionnalité critique dans le Sprint en cours. Que doit faire le PO ?",
+        options: [
+          "L'imposer immédiatement dans le Sprint Backlog des Developers",
+          "En discuter avec les Developers pour voir si le périmètre peut être renégocié sans compromettre le Sprint Goal, ou l'ordonner en haut du Product Backlog pour le prochain Sprint",
+          "Annuler systématiquement le Sprint",
+          "Demander aux Developers de faire des heures supplémentaires"
+        ],
+        correct: [1],
+        explanation: "Pendant le Sprint, aucun changement qui mettrait en péril le Sprint Goal n'est fait. Le périmètre peut toutefois être clarifié et renégocié entre le PO et les Developers."
+      },
+      {
+        id: 20,
+        domain: "Managing Products with Agility",
+        multi: false,
+        q: "Dans EBM, quel indicateur fait partie de 'Ability to Innovate' (A2I) ?",
+        options: [
+          "Le chiffre d'affaires par employé",
+          "Le pourcentage de temps passé à corriger des bugs, maintenir du code legacy ou changer de contexte (Context Switching)",
+          "La fréquence de déploiement (Release Frequency)",
+          "La part de marché des concurrents"
+        ],
+        correct: [1],
+        explanation: "Tout ce qui empêche l'équipe de créer de nouvelles fonctionnalités (maintenance lourde, dette technique, multi-projets / context switching) dégrade l'A2I."
+      }
+    ];
+
+    const DOJO_CARDS = [
+      { statement: "Le Product Owner peut être représenté par un comité de pilotage.", answer: false, rule: "Le Product Owner est UNE seule personne, jamais un comité." },
+      { statement: "Les Story Points et les User Stories sont obligatoires en Scrum.", answer: false, rule: "Scrum n'impose ni les User Stories ni les Story Points. Ce sont des pratiques optionnelles." },
+      { statement: "La Sprint Review est le seul moment où l'on peut livrer en production.", answer: false, rule: "On peut livrer (Release) à tout moment pendant le Sprint dès qu'un Increment est 'Done'." },
+      { statement: "Le Scrum Guide 2020 ne fixe plus la limite de 10% du temps pour le Refinement.", answer: true, rule: "Exact ! La règle des 10% a été retirée en 2020. Le Refinement prend le temps nécessaire." },
+      { statement: "Augmenter la vélocité prouve que le produit délivre plus de valeur.", answer: false, rule: "Faux ! La vélocité mesure le volume de sortie (Output), pas la valeur générée (Outcome)." },
+      { statement: "Il existe un Sprint 0 pour préparer l'architecture et le backlog.", answer: false, rule: "Il n'y a jamais de Sprint 0 ni de Sprint de Hardening en Scrum. Chaque Sprint produit un Increment Done." },
+      { statement: "Plusieurs équipes sur un même produit partagent le même Product Backlog et le même Product Owner.", answer: true, rule: "Exact : 1 Produit = 1 Product Goal = 1 Product Backlog = 1 Product Owner." },
+      { statement: "Seul le Product Owner a l'autorité d'annuler un Sprint.", answer: true, rule: "Exact, et uniquement si le Sprint Goal devient obsolète." },
+      { statement: "Les Developers choisissent combien d'éléments ils sélectionnent pour le Sprint.", answer: true, rule: "Exact : personne ne peut forcer les Developers à prendre plus de travail en Sprint Planning." },
+      { statement: "Un Increment est créé uniquement à la fin du Sprint.", answer: false, rule: "Un Increment naît dès l'instant où UN élément du Sprint Backlog atteint la Definition of Done." }
+    ];
+
+    const DEFAULT_STATE = {
+      xp: 0,
+      answered: {},
+      dojoBestStreak: 0,
+      checklist: {
+        scrumGuide: false,
+        ebmGuide: false,
+        openAssessments: false,
+        mock85: false
+      },
+      updatedAt: 0
+    };
+
+    function App() {
+      const [tab, setTab] = useState("dashboard");
+      const [syncKey, setSyncKey] = useState(() => localStorage.getItem("pspo_sync_key") || "HUGO-PSPO-2026");
+      const [cloudUrl, setCloudUrl] = useState(() => localStorage.getItem("pspo_cloud_url") || "https://jsonblob.com/api/jsonBlob/1344829104829104128");
+      const [state, setState] = useState(() => {
+        try {
+          const saved = localStorage.getItem("pspo_local_state");
+          return saved ? JSON.parse(saved) : DEFAULT_STATE;
+        } catch {
+          return DEFAULT_STATE;
+        }
+      });
+      const [syncStatus, setSyncStatus] = useState("Prêt (Sauvegarde locale + Cloud)");
+      const [showSyncModal, setShowSyncModal] = useState(false);
+
+      // Quiz state
+      const [domainFilter, setDomainFilter] = useState("ALL");
+      const [examMode, setExamMode] = useState(false);
+      const [currentIdx, setCurrentIdx] = useState(0);
+      const [selectedOpts, setSelectedOpts] = useState([]);
+      const [submitted, setSubmitted] = useState(false);
+
+      // Dojo state
+      const [dojoIdx, setDojoIdx] = useState(0);
+      const [dojoStreak, setDojoStreak] = useState(0);
+      const [dojoFeedback, setDojoFeedback] = useState(null);
+
+      // Save locally and push to Cloud
+      const updateState = (updater) => {
+        setState((prev) => {
+          const next = typeof updater === "function" ? updater(prev) : updater;
+          const stamped = { ...next, updatedAt: Date.now() };
+          localStorage.setItem("pspo_local_state", JSON.stringify(stamped));
+          pushToCloud(stamped);
+          return stamped;
+        });
+      };
+
+      const pushToCloud = async (dataToPush) => {
+        const key = localStorage.getItem("pspo_sync_key") || syncKey;
+        if (!key) return;
+        setSyncStatus("Synchronisation Cloud...");
+        try {
+          const res = await fetch(`https://kvdb.io/A6Xy9kLmN2pQ8rT5vW1z/${encodeURIComponent(key)}`, {
+            method: "POST",
+            body: JSON.stringify(dataToPush)
+          });
+          if (res.ok) setSyncStatus("Synchronisé (PC + Mobile)");
+          else setSyncStatus("Sauvegardé sur l'appareil");
+        } catch {
+          setSyncStatus("Mode Hors-Ligne (Sauvegarde locale)");
+        }
+      };
+
+      const pullFromCloud = async (customKey) => {
+        const key = customKey || syncKey;
+        if (!key) return;
+        setSyncStatus("Vérification Cloud...");
+        try {
+          const res = await fetch(`https://kvdb.io/A6Xy9kLmN2pQ8rT5vW1z/${encodeURIComponent(key)}`);
+          if (res.ok) {
+            const remote = await res.json();
+            if (remote && remote.updatedAt && remote.updatedAt >= (state.updatedAt || 0)) {
+              setState(remote);
+              localStorage.setItem("pspo_local_state", JSON.stringify(remote));
+            }
+            setSyncStatus("Synchronisé (PC + Mobile)");
+          } else {
+            await pushToCloud(state);
+          }
+        } catch {
+          setSyncStatus("Mode Hors-Ligne (Sauvegarde locale)");
+        }
+      };
+
+      useEffect(() => {
+        pullFromCloud(syncKey);
+        const interval = setInterval(() => pullFromCloud(syncKey), 15000);
+        return () => clearInterval(interval);
+      }, [syncKey]);
+
+      const filteredQuestions = useMemo(() => {
+        if (domainFilter === "ALL") return QUESTIONS;
+        return QUESTIONS.filter((q) => q.domain === domainFilter);
+      }, [domainFilter]);
+
+      const currentQuestion = filteredQuestions[currentIdx] || filteredQuestions[0];
+
+      const totalAnswered = Object.keys(state.answered).length;
+      const totalCorrect = Object.values(state.answered).filter(Boolean).length;
+      const scorePct = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+      const handleOptionToggle = (idx) => {
+        if (submitted) return;
+        if (currentQuestion.multi) {
+          setSelectedOpts((prev) =>
+            prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+          );
+        } else {
+          setSelectedOpts([idx]);
+        }
+      };
+
+      const handleValidate = () => {
+        if (selectedOpts.length === 0) return;
+        const isCorrect =
+          selectedOpts.length === currentQuestion.correct.length &&
+          selectedOpts.every((val) => currentQuestion.correct.includes(val));
+
+        setSubmitted(true);
+        updateState((prev) => ({
+          ...prev,
+          xp: prev.xp + (isCorrect ? 25 : 5),
+          answered: { ...prev.answered, [currentQuestion.id]: isCorrect }
+        }));
+      };
+
+      const handleNextQuestion = () => {
+        setSubmitted(false);
+        setSelectedOpts([]);
+        setCurrentIdx((prev) => (prev + 1) % filteredQuestions.length);
+      };
+
+      const handleDojoAnswer = (choice) => {
+        if (dojoFeedback) return;
+        const card = DOJO_CARDS[dojoIdx];
+        const isRight = choice === card.answer;
+        const nextStreak = isRight ? dojoStreak + 1 : 0;
+        setDojoStreak(nextStreak);
+        setDojoFeedback({ isRight, rule: card.rule });
+        updateState((prev) => ({
+          ...prev,
+          xp: prev.xp + (isRight ? 15 : 0),
+          dojoBestStreak: Math.max(prev.dojoBestStreak || 0, nextStreak)
+        }));
+      };
+
+      const nextDojoCard = () => {
+        setDojoFeedback(null);
+        setDojoIdx((prev) => (prev + 1) % DOJO_CARDS.length);
+      };
+
+      return (
+        <div className="max-w-5xl mx-auto px-4 pt-4">
+          {/* Top Bar */}
+          <header className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 mb-6 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center font-black text-lg text-white shadow">
+                PO
+              </div>
+              <div>
+                <h1 className="font-bold text-lg leading-tight text-white">PSPO I Quest</h1>
+                <p className="text-xs text-slate-400">Objectif Scrum.org : 85% (68/80 en 60 min)</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold text-amber-400">
+                ⚡ {state.xp} XP
+              </div>
+              <div className={`px-3 py-1.5 rounded-xl border text-xs font-bold ${scorePct >= 85 ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300' : 'bg-slate-800 border-slate-700 text-cyan-300'}`}>
+                Précision : {scorePct}% ({totalCorrect}/{totalAnswered})
+              </div>
+              <button
+                onClick={() => setShowSyncModal(true)}
+                className="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-xs font-medium text-indigo-300 transition"
+              >
+                ☁️ {syncKey}
+              </button>
+            </div>
+          </header>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex gap-2 mb-6 bg-slate-900/70 p-1.5 rounded-xl border border-slate-800">
+            {[
+              { id: "dashboard", label: "🎯 Plan & Progression" },
+              { id: "quiz", label: "📝 Simulateur PSPO I" },
+              { id: "dojo", label: "⚡ Dojo Vrai/Faux" },
+              { id: "codex", label: "📚 Anti-Sèches & EBM" }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setTab(item.id)}
+                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition ${
+                  tab === item.id
+                    ? "bg-indigo-600 text-white shadow"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Sync Modal */}
+          {showSyncModal && (
+            <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+              <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4">
+                <h2 className="text-lg font-bold text-white">Synchronisation Multi-Appareils</h2>
+                <p className="text-xs text-slate-400">
+                  Tous tes appareils utilisant la même clé <strong>Clé Cloud</strong> partagent automatiquement ton XP, tes scores et ta checklist en temps réel.
+                </p>
+                <div>
+                  <label className="text-xs text-slate-300 block mb-1">Clé Cloud personnelle :</label>
+                  <input
+                    type="text"
+                    value={syncKey}
+                    onChange={(e) => {
+                      setSyncKey(e.target.value.toUpperCase());
+                      localStorage.setItem("pspo_sync_key", e.target.value.toUpperCase());
+                    }}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-sm"
+                  />
+                </div>
+                <div className="text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 rounded-lg p-2.5">
+                  État : {syncStatus}
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    onClick={() => pullFromCloud(syncKey)}
+                    className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200"
+                  >
+                    Forcer la synchro
+                  </button>
+                  <button
+                    onClick={() => setShowSyncModal(false)}
+                    className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 1: DASHBOARD */}
+          {tab === "dashboard" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Seuil Officiel PSPO I</div>
+                  <div className="text-3xl font-black text-white mt-1">{scorePct}% <span className="text-sm font-normal text-slate-400">/ 85% requis</span></div>
+                  <div className="w-full bg-slate-800 h-2.5 rounded-full mt-3 overflow-hidden">
+                    <div className={`h-full transition-all ${scorePct >= 85 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${Math.min(100, scorePct)}%` }} />
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Banque de Questions</div>
+                  <div className="text-3xl font-black text-white mt-1">{totalAnswered} <span className="text-sm font-normal text-slate-400">/ {QUESTIONS.length} traitées</span></div>
+                  <p className="text-xs text-slate-400 mt-3">Cible : 100% de réussite sur les 20 questions clés.</p>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Meilleure Série Dojo</div>
+                  <div className="text-3xl font-black text-amber-400 mt-1">🔥 {state.dojoBestStreak || 0}</div>
+                  <p className="text-xs text-slate-400 mt-3">Réflexes anti-pièges Scrum.org</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <h2 className="text-base font-bold text-white mb-4">Checklist Express vers la Certification</h2>
+                <div className="space-y-3">
+                  {[
+                    { key: "scrumGuide", text: "Lire le Scrum Guide 2020 officiel (13 pages) en notant chaque mot 'Accountable'" },
+                    { key: "ebmGuide", text: "Maîtriser les 4 KVA de l'Evidence-Based Management (CV, UV, T2M, A2I)" },
+                    { key: "openAssessments", text: "Obtenir 100% trois fois de suite sur Scrum Open et Product Owner Open (Scrum.org)" },
+                    { key: "mock85", text: "Atteindre plus de 85% sur le Simulateur et le Dojo de cette application" }
+                  ].map((item) => (
+                    <label
+                      key={item.key}
+                      onClick={() =>
+                        updateState((prev) => ({
+                          ...prev,
+                          checklist: { ...prev.checklist, [item.key]: !prev.checklist[item.key] }
+                        }))
+                      }
+                      className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!state.checklist[item.key]}
+                        readOnly
+                        className="w-4 h-4 accent-indigo-500 rounded"
+                      />
+                      <span className={`text-sm ${state.checklist[item.key] ? "line-through text-slate-500" : "text-slate-200"}`}>
+                        {item.text}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: QUIZ SIMULATOR */}
+          {tab === "quiz" && currentQuestion && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900 border border-slate-800 rounded-xl p-3">
+                <select
+                  value={domainFilter}
+                  onChange={(e) => {
+                    setDomainFilter(e.target.value);
+                    setCurrentIdx(0);
+                    setSubmitted(false);
+                    setSelectedOpts([]);
+                  }}
+                  className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                >
+                  <option value="ALL">Tous les domaines ({QUESTIONS.length})</option>
+                  <option value="Understanding & Applying Scrum">Understanding & Applying Scrum</option>
+                  <option value="Managing Products with Agility">Managing Products with Agility</option>
+                  <option value="Developing & Delivering Products">Developing & Delivering Products</option>
+                  <option value="Evolving the Agile Organization">Evolving the Agile Organization</option>
+                </select>
+                <div className="text-xs text-slate-400 font-medium">
+                  Question {currentIdx + 1} / {filteredQuestions.length}
+                </div>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-800/60">
+                    {currentQuestion.domain}
+                  </span>
+                  {currentQuestion.multi && (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-amber-950 text-amber-300 border border-amber-800/60">
+                      Choix multiples
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-base md:text-lg font-bold text-white leading-snug">
+                  {currentQuestion.q}
+                </h3>
+
+                <div className="space-y-2.5">
+                  {currentQuestion.options.map((opt, i) => {
+                    const isSelected = selectedOpts.includes(i);
+                    const isCorrectOpt = currentQuestion.correct.includes(i);
+                    let btnStyle = "bg-slate-950/70 border-slate-800 text-slate-200 hover:border-slate-600";
+                    if (submitted) {
+                      if (isCorrectOpt) btnStyle = "bg-emerald-950/70 border-emerald-500 text-emerald-200";
+                      else if (isSelected) btnStyle = "bg-rose-950/70 border-rose-500 text-rose-200";
+                    } else if (isSelected) {
+                      btnStyle = "bg-indigo-950/80 border-indigo-500 text-white";
+                    }
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleOptionToggle(i)}
+                        className={`w-full text-left p-4 rounded-xl border text-sm transition flex items-start gap-3 ${btnStyle}`}
+                      >
+                        <span className="w-6 h-6 rounded-md bg-slate-800 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                        <span>{opt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {submitted && (
+                  <div className="p-4 rounded-xl bg-slate-950 border border-slate-700 text-xs md:text-sm text-slate-300 leading-relaxed">
+                    <strong className="text-indigo-400 block mb-1">Règle officielle Scrum.org :</strong>
+                    {currentQuestion.explanation}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-2">
+                  {!submitted ? (
+                    <button
+                      onClick={handleValidate}
+                      disabled={selectedOpts.length === 0}
+                      className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-sm font-bold text-white transition"
+                    >
+                      Valider la réponse
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleNextQuestion}
+                      className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-sm font-bold text-white transition"
+                    >
+                      Question suivante →
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: DOJO */}
+          {tab === "dojo" && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-2xl mx-auto space-y-6 text-center">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Mode Réflexe Anti-Pièges</span>
+                <span className="text-amber-400 font-bold">🔥 Série actuelle : {dojoStreak}</span>
+              </div>
+
+              <div className="py-8 px-4 bg-slate-950/70 border border-slate-800 rounded-2xl">
+                <p className="text-lg font-bold text-white leading-relaxed">
+                  « {DOJO_CARDS[dojoIdx].statement} »
+                </p>
+              </div>
+
+              {!dojoFeedback ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => handleDojoAnswer(true)}
+                    className="py-4 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-base transition"
+                  >
+                    ✅ VRAI
+                  </button>
+                  <button
+                    onClick={() => handleDojoAnswer(false)}
+                    className="py-4 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold text-base transition"
+                  >
+                    ❌ FAUX
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className={`p-4 rounded-xl border text-sm ${dojoFeedback.isRight ? 'bg-emerald-950/50 border-emerald-600 text-emerald-200' : 'bg-rose-950/50 border-rose-600 text-rose-200'}`}>
+                    <div className="font-bold mb-1">{dojoFeedback.isRight ? "Bien joué !" : "Piège classique !"}</div>
+                    <div>{dojoFeedback.rule}</div>
+                  </div>
+                  <button
+                    onClick={nextDojoCard}
+                    className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm"
+                  >
+                    Carte suivante →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: CODEX */}
+          {tab === "codex" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 className="font-bold text-white text-base">📊 Les 4 KVA de l'EBM (Evidence-Based Management)</h3>
+                <ul className="space-y-2 text-xs text-slate-300 leading-relaxed">
+                  <li><strong className="text-cyan-400">Current Value (CV) :</strong> Valeur délivrée aujourd'hui (Satisfaction client, usage par feature, moral équipe, revenu actuel).</li>
+                  <li><strong className="text-indigo-400">Unrealized Value (UV) :</strong> Valeur potentielle future (Parts de marché disponibles, écart de satisfaction / Customer Satisfaction Gap).</li>
+                  <li><strong className="text-emerald-400">Time-to-Market (T2M) :</strong> Vitesse d'apprentissage et de livraison (Lead Time, Cycle Time, Release Frequency, Mean Time to Repair).</li>
+                  <li><strong className="text-amber-400">Ability to Innovate (A2I) :</strong> Capacité à livrer du neuf (Dette technique, temps perdu en maintenance/bugs, Context Switching).</li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 className="font-bold text-white text-base">🚩 Red Flags vs Green Flags à l'examen</h3>
+                <ul className="space-y-2 text-xs text-slate-300 leading-relaxed">
+                  <li><strong className="text-rose-400">À éliminer d'office :</strong> "Sprint 0", "Hardening Sprint", "Release Sprint", "Comité Product Owner", "Comparer la vélocité des équipes", "Attendre la Sprint Review pour mettre en prod".</li>
+                  <li><strong className="text-emerald-400">Toujours privilégier :</strong> "Empirisme (Transparence, Inspection, Adaptation)", "Délivrer un Increment Done rapidement pour récolter du feedback réel", "1 Produit = 1 Product Backlog = 1 PO".</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Bottom Navigation */}
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 flex justify-around py-2 px-1 z-40">
+            {[
+              { id: "dashboard", icon: "🎯", label: "Plan" },
+              { id: "quiz", icon: "📝", label: "Examen" },
+              { id: "dojo", icon: "⚡", label: "Dojo" },
+              { id: "codex", icon: "📚", label: "Mémo" }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setTab(item.id)}
+                className={`flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold ${
+                  tab === item.id ? "text-indigo-400" : "text-slate-400"
+                }`}
+              >
+                <span className="text-base">{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
